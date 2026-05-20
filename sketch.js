@@ -1,12 +1,9 @@
-// ================================================
 // PROJECT NOVA: LAST DEFENSE
 // CS Elective 4 — Graphic Design
 // Developed By: Michael, Justin, Romel, Abraham, Filjoy
-// ================================================
 
 let STATE = "start";
 
-// 30 waves per level. Boss waves: 5,10,15,20,25,30
 let wave = 1;
 let level = 1;
 let enemiesThisWave = 0;
@@ -39,7 +36,7 @@ let boss = null;
 
 let score = 0;
 let highScore = 0;
-let lives = 3;
+let lives = 5;
 let shield = 0;
 let shieldMax = 1;
 let paused = false;
@@ -55,7 +52,6 @@ let novaTimer = 0;
 const NOVA_DURATION = 60 * 20;
 let prevWeapon = "single";
 
-// Boss name table — keyed to wave position within 30-wave cycle
 const BOSS_NAMES = {
   5:  "COMMANDER MICHAEL",
   10: "PHANTOM JUSTIN",
@@ -65,9 +61,7 @@ const BOSS_NAMES = {
   30: "SUPREME COMMANDER ZAPANTA"
 };
 
-// ================================================
 // AUDIO
-// ================================================
 let audioCtx;
 function playSound(type) {
   try {
@@ -125,9 +119,7 @@ function playSound(type) {
   } catch(e) {}
 }
 
-// ================================================
 // BULLET (player)
-// ================================================
 class Bullet {
   constructor(x, y, vx, vy, type) {
     this.x = x; this.y = y;
@@ -160,9 +152,7 @@ class Bullet {
   }
 }
 
-// ================================================
 // ENEMY BULLET
-// ================================================
 class EnemyBullet {
   constructor(x, y, vx, vy) {
     this.x = x; this.y = y;
@@ -181,9 +171,7 @@ class EnemyBullet {
   }
 }
 
-// ================================================
 // PLAYER
-// ================================================
 class Player {
   constructor() {
     this.x = width/2; this.y = height-80;
@@ -246,11 +234,11 @@ class Player {
     if (shield > 0) {
       shield--;
       playSound("shield");
-      this.invincible = 40;
+      this.invincible = 60;
       showMessage("SHIELD HIT! " + shield + " LEFT");
     } else {
       lives--;
-      this.invincible = 120;
+      this.invincible = 180;
       spawnExplosion(this.x, this.y, color(255,200,100), 10);
       playSound("hit");
       if (lives <= 0) {
@@ -309,66 +297,64 @@ function weaponColor() {
   return [0,200,255];
 }
 
-// ================================================
 // ENEMY — 8 types
-// ================================================
 class Enemy {
   constructor(forcedType) {
     this.x = random(30, width-30);
     this.y = random(-120, -20);
     this.active = true;
     this.animOffset = random(TWO_PI);
-    this.shootTimer = floor(random(60,180));
+    this.shootTimer = floor(random(90, 220));
     this.zigzagT = 0;
     this.type = (forcedType !== undefined) ? forcedType : floor(random(8));
 
-    let diffMult = 1 + (level-1)*0.12;
-    let spd = (1 + wave*0.06) * diffMult;
+    let diffMult = 1 + (level-1)*0.07;
+    let spd = (1 + wave*0.04) * diffMult;
 
     if (this.type === 0) {
       this.w=36; this.h=22;
-      this.hp=1+floor((level-1)*0.3); this.maxHp=this.hp;
-      this.speed=(random(1.2,2.2)+spd)*diffMult;
+      this.hp=1+floor((level-1)*0.15); this.maxHp=this.hp;
+      this.speed=(random(1.0,1.9)+spd)*diffMult;
       this.col=color(255,80,80); this.pts=10;
-      this.canShoot=wave>=3||level>1;
+      this.canShoot=wave>=4||level>1;
     } else if (this.type === 1) {
       this.w=26; this.h=26; this.hp=1; this.maxHp=1;
-      this.speed=(random(3,5.5)+spd*1.2)*diffMult;
+      this.speed=(random(2.5,4.5)+spd*1.0)*diffMult;
       this.col=color(255,200,50); this.pts=20; this.canShoot=false;
     } else if (this.type === 2) {
       this.w=46; this.h=46;
-      this.hp=2+floor(wave/4)+floor((level-1)*0.5); this.maxHp=this.hp;
-      this.speed=(random(0.6,1.2)+spd*0.4)*diffMult;
+      this.hp=2+floor(wave/5)+floor((level-1)*0.3); this.maxHp=this.hp;
+      this.speed=(random(0.5,1.0)+spd*0.35)*diffMult;
       this.col=color(180,50,255); this.pts=30;
-      this.canShoot=wave>=2||level>1;
+      this.canShoot=wave>=3||level>1;
     } else if (this.type === 3) {
       this.w=30; this.h=30; this.hp=1; this.maxHp=1;
-      this.speed=(random(2,3.5)+spd)*diffMult;
+      this.speed=(random(1.7,3.0)+spd)*diffMult;
       this.col=color(50,220,180); this.pts=25; this.canShoot=false;
       this.diagDir=random()<0.5?1:-1;
     } else if (this.type === 4) {
       this.w=40; this.h=40;
-      this.hp=2+floor((level-1)*0.4); this.maxHp=this.hp;
-      this.speed=(random(0.8,1.4)+spd*0.6)*diffMult;
+      this.hp=2+floor((level-1)*0.25); this.maxHp=this.hp;
+      this.speed=(random(0.7,1.2)+spd*0.5)*diffMult;
       this.col=color(255,120,30); this.pts=35; this.canShoot=true;
     } else if (this.type === 5) {
       this.w=18; this.h=18; this.hp=1; this.maxHp=1;
-      this.speed=(random(2.5,4)+spd*1.5)*diffMult;
+      this.speed=(random(2.0,3.2)+spd*1.2)*diffMult;
       this.col=color(200,50,255); this.pts=15; this.canShoot=false;
       this.driftTargetX=player?player.x:width/2;
     } else if (this.type === 6) {
       this.w=38; this.h=28;
-      this.hp=2+floor((level-1)*0.3); this.maxHp=this.hp;
-      this.speed=(random(0.5,1.0)+spd*0.3)*diffMult;
+      this.hp=2+floor((level-1)*0.2); this.maxHp=this.hp;
+      this.speed=(random(0.4,0.9)+spd*0.25)*diffMult;
       this.col=color(255,80,0); this.pts=40; this.canShoot=true;
-      this.shootTimer=floor(random(40,80));
+      this.shootTimer=floor(random(60,110));
     } else if (this.type === 7) {
       this.w=32; this.h=32;
-      this.hp=2+floor((level-1)*0.3); this.maxHp=this.hp;
-      this.speed=(random(1.2,2.2)+spd*0.5)*diffMult;
+      this.hp=2+floor((level-1)*0.2); this.maxHp=this.hp;
+      this.speed=(random(1.0,1.8)+spd*0.4)*diffMult;
       this.col=color(80,200,255); this.pts=45; this.canShoot=true;
       this.arcT=0; this.baseX=this.x;
-      this.shootTimer=floor(random(50,100));
+      this.shootTimer=floor(random(70,130));
     }
   }
 
@@ -391,20 +377,20 @@ class Enemy {
     if (this.canShoot && this.y>0) {
       this.shootTimer--;
       if (this.shootTimer<=0) {
-        let bspd=(3.5+wave*0.06)*(1+(level-1)*0.08);
+        let bspd=(2.8+wave*0.04)*(1+(level-1)*0.05);
         if (this.type===0||this.type===2) {
           enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2, 0, bspd));
         } else if (this.type===4) {
           enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2, 0, bspd));
-          enemyBullets.push(new EnemyBullet(this.x, this.y, -bspd, 0));
-          enemyBullets.push(new EnemyBullet(this.x, this.y, bspd, 0));
+          enemyBullets.push(new EnemyBullet(this.x, this.y, -bspd*0.8, 0));
+          enemyBullets.push(new EnemyBullet(this.x, this.y, bspd*0.8, 0));
         } else if (this.type===6) {
-          enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2, 0, bspd*1.4));
+          enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2, 0, bspd*1.2));
         } else if (this.type===7) {
-          enemyBullets.push(new EnemyBullet(this.x, this.y, -bspd*1.1, 0.5));
-          enemyBullets.push(new EnemyBullet(this.x, this.y,  bspd*1.1, 0.5));
+          enemyBullets.push(new EnemyBullet(this.x, this.y, -bspd*0.9, 0.5));
+          enemyBullets.push(new EnemyBullet(this.x, this.y,  bspd*0.9, 0.5));
         }
-        this.shootTimer=max(25,floor(random(70,150))-wave*2-level*3);
+        this.shootTimer=max(40,floor(random(90,180))-wave*2-level*2);
       }
     }
   }
@@ -482,11 +468,7 @@ class Enemy {
   }
 }
 
-// ================================================
-// BOSS — 6 unique designs, all drawn INSIDE push/translate
-// Difficulty scales hard with level
-// Each boss has a UNIQUE attack pattern
-// ================================================
+// BOSS
 class Boss {
   constructor() {
     this.x = width/2; this.y = -160;
@@ -503,50 +485,42 @@ class Boss {
     this.name = BOSS_NAMES[wk] || "GUARDIAN";
     this.isFinalBoss = (wk === 30);
 
-    // Difficulty multiplier — grows significantly each level
-    let diffMult = 1 + (level-1)*0.18;
+    let diffMult = 1 + (level-1)*0.10;
 
-    // Each boss has individually tuned stats
     if (wk === 5) {
-      // COMMANDER MICHAEL — medium, methodical
       this.w=120; this.h=70;
-      this.maxHp = Math.round((22+level*5)*diffMult);
-      this.pts=200+level*25; this.speed=(1.1+level*0.07)*diffMult;
+      this.maxHp = Math.round((18+level*4)*diffMult);
+      this.pts=200+level*25; this.speed=(1.0+level*0.06)*diffMult;
       this.col=color(0,140,255); this.p2t=0.5; this.p3t=-1;
       this.isMega=false; this.isBig=false;
     } else if (wk === 10) {
-      // PHANTOM JUSTIN — fast, sneaky
       this.w=100; this.h=80;
-      this.maxHp = Math.round((28+level*6)*diffMult);
-      this.pts=280+level*30; this.speed=(1.5+level*0.09)*diffMult;
+      this.maxHp = Math.round((22+level*5)*diffMult);
+      this.pts=280+level*30; this.speed=(1.3+level*0.07)*diffMult;
       this.col=color(220,30,60); this.p2t=0.5; this.p3t=0.25;
       this.isMega=false; this.isBig=true;
     } else if (wk === 15) {
-      // TITAN ROMEL — slow, tanky, hits hard
       this.w=160; this.h=90;
-      this.maxHp = Math.round((40+level*8)*diffMult);
-      this.pts=380+level*40; this.speed=(0.9+level*0.05)*diffMult;
+      this.maxHp = Math.round((32+level*6)*diffMult);
+      this.pts=380+level*40; this.speed=(0.85+level*0.04)*diffMult;
       this.col=color(150,30,255); this.p2t=0.55; this.p3t=0.25;
       this.isMega=false; this.isBig=true;
     } else if (wk === 20) {
-      // OVERLORD ABRAHAM — balanced, multi-phase
       this.w=150; this.h=90;
-      this.maxHp = Math.round((50+level*9)*diffMult);
-      this.pts=460+level*50; this.speed=(1.2+level*0.06)*diffMult;
+      this.maxHp = Math.round((40+level*7)*diffMult);
+      this.pts=460+level*50; this.speed=(1.1+level*0.05)*diffMult;
       this.col=color(0,200,80); this.p2t=0.6; this.p3t=0.3;
       this.isMega=true; this.isBig=true;
     } else if (wk === 25) {
-      // CAPTAIN FILJOY — aggressive, chaotic
       this.w=170; this.h=100;
-      this.maxHp = Math.round((60+level*11)*diffMult);
-      this.pts=540+level*60; this.speed=(1.4+level*0.08)*diffMult;
+      this.maxHp = Math.round((48+level*9)*diffMult);
+      this.pts=540+level*60; this.speed=(1.2+level*0.07)*diffMult;
       this.col=color(255,180,0); this.p2t=0.55; this.p3t=0.28;
       this.isMega=true; this.isBig=true;
     } else {
-      // SUPREME COMMANDER ZAPANTA — final, overwhelming
       this.w=190+min(level*3,50); this.h=110+min(level*2,30);
-      this.maxHp = Math.round((80+level*14)*diffMult);
-      this.pts=700+level*90; this.speed=(1.6+level*0.1)*diffMult;
+      this.maxHp = Math.round((64+level*11)*diffMult);
+      this.pts=700+level*90; this.speed=(1.4+level*0.08)*diffMult;
       this.col=color(255,20,80); this.p2t=0.6; this.p3t=0.3;
       this.isMega=true; this.isBig=true;
     }
@@ -560,136 +534,120 @@ class Boss {
     this.moveTimer++;
 
     let hpRatio = this.hp/this.maxHp;
-    if (hpRatio<=this.p2t && this.phase<2) { this.phase=2; this.speed*=1.3; }
+    if (hpRatio<=this.p2t && this.phase<2) { this.phase=2; this.speed*=1.2; }
     if (this.p3t>0 && hpRatio<=this.p3t && this.phase<3) {
-      this.phase=3; this.speed*=1.2; this.enraged=true;
+      this.phase=3; this.speed*=1.15; this.enraged=true;
     }
 
-    // Movement pattern varies by boss
     if (this.waveKey===5) {
-      // Michael: slow sweep
       this.x += sin(this.moveTimer*0.015)*3;
     } else if (this.waveKey===10) {
-      // Justin: fast erratic
       this.x += sin(this.moveTimer*0.03)*4 + sin(this.moveTimer*0.07)*2;
     } else if (this.waveKey===15) {
-      // Romel: slow pendulum
       this.x = width/2 + sin(this.moveTimer*0.012)*220;
       this.y = this.targetY + sin(this.moveTimer*0.018)*20;
     } else if (this.waveKey===20) {
-      // Abraham: figure-8 drift
       this.x = width/2 + sin(this.moveTimer*0.018)*180;
       this.y = this.targetY + sin(this.moveTimer*0.036)*35;
     } else if (this.waveKey===25) {
-      // Filjoy: aggressive charge + retreat
       this.x += sin(this.moveTimer*0.025)*(3+this.phase);
       this.y = this.targetY + sin(this.moveTimer*0.02)*50;
     } else {
-      // Zapanta: multi-axis chaos
       this.x = width/2 + sin(this.moveTimer*0.02)*200 + sin(this.moveTimer*0.05)*60;
       this.y = this.targetY + sin(this.moveTimer*0.015)*40;
     }
     this.x = constrain(this.x, this.w/2, width-this.w/2);
 
     this.shootTimer--;
-    // Fire rate scales with phase AND level
-    let rate = max(8, 60 - this.phase*15 - level*1.5);
+    // CHANGED: minimum fire rate raised (was max(8,...), now max(14,...)) — more breathing room
+    let rate = max(14, 70 - this.phase*14 - level*1.2);
     if (this.shootTimer<=0) {
       this.shootTimer=rate;
       this.firePattern();
     }
   }
 
-  // ── Each boss fires a UNIQUE pattern ──
   firePattern() {
-    let spd = (3+level*0.18+this.phase*0.7)*(1+(level-1)*0.06);
+    // CHANGED: bullet speed reduced (base was 3+level*0.18, now 2.5+level*0.12)
+    let spd = (2.5+level*0.12+this.phase*0.5)*(1+(level-1)*0.04);
 
     if (this.waveKey===5) {
-      // MICHAEL — disciplined V-formations
       if (this.phase===1) {
-        // 3-shot V
         for (let i=-1;i<=1;i++)
-          enemyBullets.push(new EnemyBullet(this.x+i*25, this.y+this.h/2, i*1.2, spd));
+          enemyBullets.push(new EnemyBullet(this.x+i*25, this.y+this.h/2, i*1.0, spd));
       } else {
-        // Double V
         for (let i=-2;i<=2;i++)
-          enemyBullets.push(new EnemyBullet(this.x+i*20, this.y+this.h/2, i*1.0, spd));
+          enemyBullets.push(new EnemyBullet(this.x+i*20, this.y+this.h/2, i*0.85, spd));
       }
 
     } else if (this.waveKey===10) {
-      // JUSTIN — scattered burst, unpredictable angles
-      let count = 5 + this.phase*3 + floor(level*0.3);
+      // CHANGED: count reduced slightly
+      let count = 4 + this.phase*2 + floor(level*0.2);
       for (let i=0;i<count;i++) {
         let ang = random(PI*0.15, PI*0.85);
         enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2,
-          cos(ang)*spd*(0.7+random(0.6)), sin(ang)*spd*(0.7+random(0.6))));
+          cos(ang)*spd*(0.7+random(0.5)), sin(ang)*spd*(0.7+random(0.5))));
       }
 
     } else if (this.waveKey===15) {
-      // ROMEL — slow heavy cannonballs in fixed radial bursts
-      let count = 6 + this.phase*2 + floor(level*0.4);
+      let count = 5 + this.phase*2 + floor(level*0.3);
       for (let i=0;i<count;i++) {
         let ang = (TWO_PI/count)*i;
-        // Only fire bullets going generally downward (vy > 0)
         let vy = abs(sin(ang))*spd + 0.5;
         let vx = cos(ang)*spd*0.8;
         enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2, vx, vy));
       }
 
     } else if (this.waveKey===20) {
-      // ABRAHAM — rotating spiral
-      let count = 6+this.phase*3+floor(level*0.35);
+      let count = 5+this.phase*2+floor(level*0.25);
       for (let i=0;i<count;i++) {
         let ang=(TWO_PI/count)*i + this.animT*(1+this.phase*0.5);
         enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2,
           cos(ang)*spd, sin(ang)*spd+0.4));
       }
       if (this.phase>=2) {
-        // Side bursts
         enemyBullets.push(new EnemyBullet(this.x-this.w/2, this.y, -spd, 0.8));
         enemyBullets.push(new EnemyBullet(this.x+this.w/2, this.y,  spd, 0.8));
       }
 
     } else if (this.waveKey===25) {
-      // FILJOY — tri-ring chaos
-      let rings=[5,9,13];
+      // CHANGED: ring counts reduced
+      let rings=[4,7,11];
       let useRings=this.phase;
       for (let r=0;r<useRings;r++) {
-        let count=rings[r]+floor(level*0.25);
+        let count=rings[r]+floor(level*0.18);
         for (let i=0;i<count;i++) {
           let ang=(TWO_PI/count)*i+this.animT*(r+1)*1.2;
-          let s=spd+r*0.7;
+          let s=spd+r*0.6;
           enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2,
             cos(ang)*s, sin(ang)*s+0.3));
         }
       }
 
     } else {
-      // ZAPANTA — quad-ring + side cannons, maximally overwhelming
-      let rings=[6,10,14,18];
+      // CHANGED: ring counts reduced
+      let rings=[5,8,11,14];
       let useRings=this.phase===3?4:this.phase===2?3:2;
       for (let r=0;r<useRings;r++) {
-        let count=rings[r]+floor(level*0.3);
+        let count=rings[r]+floor(level*0.22);
         for (let i=0;i<count;i++) {
           let ang=(TWO_PI/count)*i+this.animT*(r+1)*1.5;
-          let s=spd+r*0.6;
+          let s=spd+r*0.5;
           enemyBullets.push(new EnemyBullet(this.x, this.y+this.h/2,
             cos(ang)*s, sin(ang)*s+0.3));
         }
       }
       if (this.phase>=2) {
-        enemyBullets.push(new EnemyBullet(this.x-this.w/2, this.y, -spd, 1.2));
-        enemyBullets.push(new EnemyBullet(this.x+this.w/2, this.y,  spd, 1.2));
+        enemyBullets.push(new EnemyBullet(this.x-this.w/2, this.y, -spd, 1.0));
+        enemyBullets.push(new EnemyBullet(this.x+this.w/2, this.y,  spd, 1.0));
       }
       if (this.phase===3) {
-        // Diagonal downward missiles
-        enemyBullets.push(new EnemyBullet(this.x-40, this.y+this.h/2, -1.5, spd*1.1));
-        enemyBullets.push(new EnemyBullet(this.x+40, this.y+this.h/2,  1.5, spd*1.1));
+        enemyBullets.push(new EnemyBullet(this.x-40, this.y+this.h/2, -1.2, spd*0.9));
+        enemyBullets.push(new EnemyBullet(this.x+40, this.y+this.h/2,  1.2, spd*0.9));
       }
     }
   }
 
-  // ── Each boss has a UNIQUE VISUAL design, all drawn inside push/translate ──
   draw() {
     push();
     translate(this.x, this.y);
@@ -698,53 +656,32 @@ class Boss {
     let hpRatio = this.hp/this.maxHp;
     let enrageGlow = this.enraged ? (100+sin(frameCount*0.3)*80) : 0;
 
-    // ── COMMANDER MICHAEL (wave 5) ──
-    // Blue military gunship: rectangular body, armored wings, visor
     if (this.waveKey===5) {
-      // Outer glow
       fill(0,140,255,25+enrageGlow*0.2); noStroke();
       ellipse(0,0,this.w+40+pulse,this.h+40+pulse);
-
-      // Wing panels
       fill(0,80,180); stroke(100,200,255,120); strokeWeight(1.5);
       rect(-this.w/2-18,-10,22,28,3);
       rect(this.w/2-4,-10,22,28,3);
-
-      // Main hull — flat rectangular command ship
       fill(20,100,200); stroke(150,220,255,180); strokeWeight(2);
       rect(-this.w/2,-this.h/2,this.w,this.h,8);
-
-      // Armor stripe across middle
       fill(0,60,140); noStroke();
       rect(-this.w/2,-8,this.w,16);
-
-      // Visor / cockpit window
       fill(0,220,255,200); stroke(180,240,255); strokeWeight(1);
       rect(-28,-this.h/2+10,56,18,4);
-      // Visor glare
       fill(255,255,255,60); noStroke();
       rect(-22,-this.h/2+13,18,6,2);
-
-      // Eyes (headlights)
       fill(0,255,200,220); noStroke();
       ellipse(-22,6,14,10);
       ellipse(22,6,14,10);
       fill(0,180,140); ellipse(-22,6,7,5); ellipse(22,6,7,5);
-
-      // Cannon barrels
       fill(0,60,140); stroke(100,180,255,100); strokeWeight(1);
       rect(-8,this.h/2-2,16,18,3);
       rect(-28,this.h/2+2,12,14,2);
       rect(16,this.h/2+2,12,14,2);
 
-    // ── PHANTOM JUSTIN (wave 10) ──
-    // Red triangular stealth fighter, sharp & angular
     } else if (this.waveKey===10) {
-      // Eerie red glow
       fill(255,20,50,20+enrageGlow*0.2); noStroke();
       ellipse(0,0,this.w+50+pulse*2,this.h+50+pulse*2);
-
-      // Swept wings
       fill(150,10,30); stroke(255,60,80,140); strokeWeight(1.5);
       beginShape();
       vertex(0,-this.h/2-10);
@@ -754,8 +691,6 @@ class Boss {
       vertex(this.w/3,this.h/4);
       vertex(this.w/2+20,this.h/2);
       endShape(CLOSE);
-
-      // Core fuselage
       fill(210,20,50); stroke(255,100,120,180); strokeWeight(2);
       beginShape();
       vertex(0,-this.h/2-10);
@@ -764,33 +699,21 @@ class Boss {
       vertex(this.w/5,this.h/2);
       vertex(this.w/4,0);
       endShape(CLOSE);
-
-      // Glowing cockpit slit
       fill(255,50,80,200); noStroke();
       ellipse(0,-this.h/4,30,8);
       fill(255,150,160,160); ellipse(0,-this.h/4,14,4);
-
-      // Eye lenses (sinister)
       fill(255,0,30,240); stroke(255,80,80,100); strokeWeight(1);
       ellipse(-14,4,12,8);
       ellipse(14,4,12,8);
-      // Pupils
       fill(80,0,0); noStroke();
       ellipse(-14,4,5,5); ellipse(14,4,5,5);
-
-      // Wing missiles
       fill(100,10,20); noStroke();
       rect(-this.w/2-14,this.h/4-4,10,16,2);
       rect(this.w/2+4,this.h/4-4,10,16,2);
 
-    // ── TITAN ROMEL (wave 15) ──
-    // Purple brutalist fortress: massive hexagonal body, thick plating
     } else if (this.waveKey===15) {
-      // Heavy purple atmosphere
       fill(140,20,255,22+enrageGlow*0.2); noStroke();
       ellipse(0,0,this.w+60+pulse,this.h+60+pulse);
-
-      // Thick outer plating ring
       fill(90,10,180); stroke(200,100,255,140); strokeWeight(2.5);
       beginShape();
       for (let a=0;a<6;a++){
@@ -798,8 +721,6 @@ class Boss {
         vertex(cos(ang)*(this.w/2+8),sin(ang)*(this.h/2+8));
       }
       endShape(CLOSE);
-
-      // Inner hex body
       fill(120,30,220); stroke(220,150,255,180); strokeWeight(2);
       beginShape();
       for (let a=0;a<6;a++){
@@ -807,40 +728,26 @@ class Boss {
         vertex(cos(ang)*this.w/2,sin(ang)*this.h/2);
       }
       endShape(CLOSE);
-
-      // Armor bolts / panel lines
       fill(80,10,160); noStroke();
       for (let a=0;a<6;a++){
         let ang=(TWO_PI/6)*a-PI/6;
         ellipse(cos(ang)*this.w/2*0.72,sin(ang)*this.h/2*0.72,8,8);
       }
-
-      // Eye block — wide rectangular visor
       fill(180,80,255,200); stroke(220,180,255); strokeWeight(1);
       rect(-36,-14,72,20,5);
-      // Visor segments
       fill(255,200,255,160); noStroke();
       for (let i=-2;i<=2;i++) rect(i*13-4,-11,8,14,2);
-
-      // Bottom cannon mount
       fill(80,10,160); stroke(180,80,255,120); strokeWeight(1);
       rect(-20,this.h/2-4,40,16,4);
       fill(200,100,255,200); noStroke(); ellipse(0,this.h/2+6,14,10);
-
-      // Shoulder cannons
       fill(90,10,180); stroke(200,80,255,100); strokeWeight(1);
       rect(-this.w/2-12,-8,14,20,3);
       rect(this.w/2-2,-8,14,20,3);
 
-    // ── OVERLORD ABRAHAM (wave 20) ──
-    // Green bio-organic command ship: hexagonal overlapping plates, organic glow
     } else if (this.waveKey===20) {
-      // Green plasma field
       fill(0,200,80,18+enrageGlow*0.2); noStroke();
       ellipse(0,0,this.w+70+pulse,this.h+70+pulse);
       fill(0,150,60,15); ellipse(0,0,this.w+40+pulse,this.h+40+pulse);
-
-      // Bio-organic outer ring (rotating plates)
       push();
       rotate(this.animT*0.3);
       fill(0,120,50); stroke(0,255,120,100); strokeWeight(1.5);
@@ -850,8 +757,6 @@ class Boss {
         pop();
       }
       pop();
-
-      // Main hull — double-hex
       fill(0,160,60); stroke(0,255,100,180); strokeWeight(2);
       beginShape();
       for (let a=0;a<6;a++){
@@ -859,8 +764,6 @@ class Boss {
         vertex(cos(ang)*this.w/2,sin(ang)*this.h/2);
       }
       endShape(CLOSE);
-
-      // Inner glow hex
       fill(0,200,80,120); noStroke();
       beginShape();
       for (let a=0;a<6;a++){
@@ -868,8 +771,6 @@ class Boss {
         vertex(cos(ang)*this.w/2*0.55,sin(ang)*this.h/2*0.55);
       }
       endShape(CLOSE);
-
-      // Eyes — compound (3 per side)
       let eyePositions=[[-24,-8],[-12,-8],[0,-8],[12,-8],[24,-8]];
       for (let ep of eyePositions) {
         fill(0,255,100,220); stroke(100,255,150,100); strokeWeight(1);
@@ -877,21 +778,14 @@ class Boss {
         fill(0,80,30); noStroke(); ellipse(ep[0],ep[1],4,4);
         fill(200,255,200,150); ellipse(ep[0]-2,ep[1]-2,2,2);
       }
-
-      // Bio mandibles at bottom
       fill(0,100,40); stroke(0,220,100,100); strokeWeight(1);
       triangle(-40,this.h/2-10,-55,this.h/2+20,-28,this.h/2);
       triangle(40,this.h/2-10,55,this.h/2+20,28,this.h/2);
 
-    // ── CAPTAIN FILJOY (wave 25) ──
-    // Gold solar destroyer: radiant sun-like disc with spike array
     } else if (this.waveKey===25) {
-      // Golden corona glow
       fill(255,200,0,20+enrageGlow*0.2); noStroke();
       ellipse(0,0,this.w+80+pulse*2,this.h+80+pulse*2);
       fill(255,160,0,15); ellipse(0,0,this.w+50+pulse,this.h+50+pulse);
-
-      // Rotating spike array
       push();
       rotate(this.animT*0.4);
       fill(200,130,0); stroke(255,220,50,120); strokeWeight(1);
@@ -901,46 +795,30 @@ class Boss {
         pop();
       }
       pop();
-
-      // Outer ring
       fill(220,160,0); stroke(255,230,80,200); strokeWeight(2.5);
       ellipse(0,0,this.w,this.h*0.75);
-
-      // Inner disc
       fill(255,200,30); stroke(255,240,100,160); strokeWeight(2);
       ellipse(0,0,this.w*0.65,this.h*0.5);
-
-      // Core reactor
       let coreGlow=200+sin(frameCount*0.3)*55;
       fill(255,240,80,coreGlow); noStroke();
       ellipse(0,0,this.w*0.32,this.h*0.24);
       fill(255,255,180); ellipse(0,0,this.w*0.14,this.h*0.1);
-
-      // Eyes — wide apart on the ring
       fill(255,80,0,230); stroke(255,160,0,120); strokeWeight(1);
       ellipse(-this.w*0.22,0,18,14);
       ellipse( this.w*0.22,0,18,14);
       fill(120,30,0); noStroke();
       ellipse(-this.w*0.22,0,7,7); ellipse(this.w*0.22,0,7,7);
-      // Anger brows
       stroke(255,100,0,180); strokeWeight(2.5);
       line(-this.w*0.27,-8,-this.w*0.17,-5);
       line( this.w*0.17,-8, this.w*0.27,-5);
-
-      // Bottom arc cannon
       noFill(); stroke(255,200,50,150); strokeWeight(3);
       arc(0,10,60,30,0,PI);
       fill(255,180,0); noStroke(); ellipse(-30,10,8,8); ellipse(30,10,8,8);
 
-    // ── SUPREME COMMANDER ZAPANTA (wave 30) ──
-    // Dark crimson dreadnought: overwhelming, multi-component, intimidating
     } else {
-      // Massive red void field
       fill(200,10,50,15+enrageGlow*0.25); noStroke();
       ellipse(0,0,this.w+100+pulse*3,this.h+100+pulse*3);
       fill(255,30,80,10); ellipse(0,0,this.w+60+pulse,this.h+60+pulse);
-
-      // Outer rotating energy rings
       push();
       rotate(this.animT*0.25);
       stroke(255,50,80,80+enrageGlow*0.5); strokeWeight(2); noFill();
@@ -952,23 +830,17 @@ class Boss {
         pop();
       }
       pop();
-
-      // Extended side wings — prongs
       fill(120,5,30); stroke(255,40,70,120); strokeWeight(1.5);
-      // Left prong
       beginShape();
       vertex(-this.w/2,0); vertex(-this.w/2-30,-10);
       vertex(-this.w/2-45,this.h/4); vertex(-this.w/2-20,this.h/2);
       vertex(-this.w/2,this.h/3);
       endShape(CLOSE);
-      // Right prong
       beginShape();
       vertex(this.w/2,0); vertex(this.w/2+30,-10);
       vertex(this.w/2+45,this.h/4); vertex(this.w/2+20,this.h/2);
       vertex(this.w/2,this.h/3);
       endShape(CLOSE);
-
-      // Main hull
       fill(160,10,40); stroke(255,60,90,200); strokeWeight(2.5);
       beginShape();
       vertex(0,-this.h/2-16);
@@ -981,43 +853,28 @@ class Boss {
       vertex(this.w/2,0);
       vertex(this.w*0.38,-this.h/4);
       endShape(CLOSE);
-
-      // Internal armor striping
       fill(100,5,25); noStroke();
       rect(-this.w/2+8,-8,this.w-16,16,4);
       rect(-this.w/2+18,this.h/4-6,this.w-36,12,4);
-
-      // Main visor — wide sinister slit
       fill(255,20,50,200+sin(frameCount*0.2)*55);
       stroke(255,80,100,100); strokeWeight(1);
       rect(-this.w/2+14,-this.h/4-4,this.w-28,12,6);
-      // Visor scan line
       let scanX=map(sin(frameCount*0.05),-1,1,-this.w/2+18,this.w/2-22);
       fill(255,100,120,200); noStroke(); rect(scanX,-this.h/4-2,12,8,2);
-
-      // Two large main eyes
       fill(255,30,60,240); stroke(255,80,90,120); strokeWeight(1);
       ellipse(-this.w/4,8,22,16);
       ellipse( this.w/4,8,22,16);
-      // Pupils — large and menacing
       fill(60,0,15); noStroke();
       ellipse(-this.w/4,8,9,9); ellipse(this.w/4,8,9,9);
-      // Eye highlight
       fill(255,150,160,200);
       ellipse(-this.w/4-3,5,4,3); ellipse(this.w/4-3,5,4,3);
-
-      // Brow ridge — angry
       fill(130,10,30); stroke(255,50,70,100); strokeWeight(2);
       line(-this.w/4-14,0,-this.w/4+14,4);
       line( this.w/4-14,4, this.w/4+14,0);
-
-      // Core power reactor
       let rA=200+sin(frameCount*0.28)*55;
       fill(255,80,50,rA); noStroke(); ellipse(0,0,44+pulse,32+pulse);
       fill(255,180,100); ellipse(0,0,22,16);
       fill(255,240,200); ellipse(0,0,9,7);
-
-      // Bottom quad-cannons
       fill(100,5,25); stroke(255,40,60,100); strokeWeight(1);
       rect(-50,this.h/2+6,22,18,3);
       rect(-18,this.h/2+8,14,22,3);
@@ -1025,16 +882,13 @@ class Boss {
       rect(28,this.h/2+6,22,18,3);
     }
 
-    // ── HP BAR (all bosses) ──
     noStroke();
     fill(40,0,0,200);
     rect(-this.w/2,-this.h/2-22,this.w,11,3);
     fill(hpRatio>0.5?color(0,230,100):hpRatio>0.25?color(255,200,0):color(255,40,40));
     rect(-this.w/2,-this.h/2-22,this.w*hpRatio,11,3);
-    // HP bar shine
     fill(255,255,255,30); rect(-this.w/2,-this.h/2-22,this.w*hpRatio,4,3);
 
-    // Boss name label
     fill(255); textAlign(CENTER,CENTER); textSize(10); textFont("monospace");
     text(this.name + "  HP: " + this.hp, 0, -this.h/2-34);
 
@@ -1051,9 +905,7 @@ class Boss {
   }
 }
 
-// ================================================
 // PARTICLE
-// ================================================
 class Particle {
   constructor(x,y,col){
     this.x=x; this.y=y;
@@ -1071,9 +923,7 @@ class Particle {
   isDead(){return this.life<=0;}
 }
 
-// ================================================
 // POWERUP
-// ================================================
 class Powerup {
   constructor(x,y,forcedType){
     this.x=x; this.y=y; this.w=24; this.h=24;
@@ -1107,9 +957,7 @@ class Powerup {
   }
 }
 
-// ================================================
 // STARS
-// ================================================
 function createStars(){
   stars=[];
   for(let i=0;i<140;i++){
@@ -1131,9 +979,7 @@ function spawnExplosion(x,y,col,count){
   for(let i=0;i<count;i++) particles.push(new Particle(x,y,col));
 }
 
-// ================================================
 // HUD
-// ================================================
 function drawHUD(){
   fill(0,0,0,150);noStroke();rect(0,0,width,58);
   textFont("monospace");
@@ -1169,9 +1015,7 @@ function drawHUD(){
   text("WASD/Arrows—Move | P—Pause | D—Demo(W25 Boss)",width/2,height-12);
 }
 
-// ================================================
 // MESSAGES
-// ================================================
 function showMessage(msg){waveMessage=msg;waveMessageTimer=180;}
 function drawWaveMessage(){
   if(waveMessageTimer<=0)return;
@@ -1182,9 +1026,7 @@ function drawWaveMessage(){
   waveMessageTimer--;
 }
 
-// ================================================
 // BOSS INTRO
-// ================================================
 function drawBossIntro(){
   if(!bossIntroActive)return;
   bossIntroTimer--;
@@ -1239,9 +1081,7 @@ function drawBossIntro(){
   rect(width/2-100,height/2+106,200*prog,6,3);
 }
 
-// ================================================
 // LEVEL COMPLETE
-// ================================================
 function drawLevelComplete(){
   if(!levelCompleteActive)return;
   levelCompleteTimer--;
@@ -1275,10 +1115,7 @@ function drawLevelComplete(){
   fill(150,180,255);textSize(10);text("Preparing next level...",width/2,height/2+76);
 }
 
-// ================================================
-// WAVE SYSTEM — 30 waves per level
-// Boss waves: 5,10,15,20,25,30
-// ================================================
+// WAVE SYSTEM
 function isBossWaveNum(w){
   let wk=((w-1)%30)+1;
   return wk===5||wk===10||wk===15||wk===20||wk===25||wk===30;
@@ -1289,8 +1126,9 @@ function startWave(){
   enemiesThisWave=0;enemiesKilled=0;boss=null;enemyBullets=[];
   bossWave=isBossWaveNum(wave);
 
-  let diffBonus=(level-1)*4;
-  enemiesToSpawn=bossWave?0:(12+wave*2+diffBonus);
+  let diffBonus=(level-1)*3;   // CHANGED: was *4 — fewer enemies per level
+  // CHANGED: base count reduced slightly (was 12+wave*2, now 10+wave*2)
+  enemiesToSpawn=bossWave?0:(10+wave*2+diffBonus);
 
   if(bossWave){
     let wk=((wave-1)%30)+1;
@@ -1305,7 +1143,8 @@ function startWave(){
 
 function spawnWaveEnemies(){
   if(bossWave)return;
-  let spawnInterval=max(6,45-wave-(level-1)*3);
+  // CHANGED: spawn interval slightly longer (was max(6,...), now max(8,...))
+  let spawnInterval=max(8,50-wave-(level-1)*3);
   if(enemiesThisWave<enemiesToSpawn&&frameCount%spawnInterval===0){
     if(wave>=5&&random()<0.35){
       let rowY=random(-130,-40);
@@ -1333,9 +1172,7 @@ function advanceWave(){
   }
 }
 
-// ================================================
 // SCREENS
-// ================================================
 function drawStartScreen(){
   background(5,5,20);drawStars();
   textAlign(CENTER,CENTER);textFont("monospace");
@@ -1437,11 +1274,9 @@ function drawGameOverScreen(){
   if(frameCount%60<35){fill(0,255,150);textSize(16);text("PRESS ENTER TO PLAY AGAIN",width/2,height/2+120);}
 }
 
-// ================================================
 // RESET
-// ================================================
 function resetGame(){
-  score=0;lives=3;shield=0;wave=1;level=1;
+  score=0;lives=5;shield=0;wave=1;level=1;   // CHANGED: lives start at 5
   waveInProgress=false;betweenWaves=false;waveTimer=0;
   bossWave=false;boss=null;
   bullets=[];enemyBullets=[];enemies=[];particles=[];powerups=[];
@@ -1452,10 +1287,7 @@ function resetGame(){
   player=new Player();createStars();startWave();
 }
 
-// ================================================
-// DEMO MODE — press D to jump to Wave 25 (Filjoy)
-// for a faster classroom demo of boss visuals
-// ================================================
+// DEMO MODE
 function activateDemo(){
   enemies=[];enemyBullets=[];boss=null;powerups=[];
   wave=25;
@@ -1466,9 +1298,7 @@ function activateDemo(){
   setTimeout(()=>{startWave();},1500);
 }
 
-// ================================================
 // SETUP
-// ================================================
 function setup(){
   createCanvas(620,720);
   textFont("monospace");
@@ -1476,9 +1306,7 @@ function setup(){
   STATE="start";
 }
 
-// ================================================
 // DRAW LOOP
-// ================================================
 function draw(){
   if(STATE==="start"){drawStartScreen();return;}
   if(STATE==="gameover"){drawGameOverScreen();return;}
@@ -1584,7 +1412,7 @@ function draw(){
     powerups[i].update();powerups[i].draw();
     if(player.hits(powerups[i])){
       playSound("powerup");let t=powerups[i].type;
-      if(t==="life"){lives=min(lives+1,5);showMessage("EXTRA LIFE!");}
+      if(t==="life"){lives=min(lives+1,7);showMessage("EXTRA LIFE!");}  // CHANGED: cap raised to 7
       else if(t==="shield"){shield=min(shield+shieldMax,shieldMax);showMessage("SHIELD RESTORED!");}
       else {
         if(novaActive){prevWeapon=t;showMessage(t.toUpperCase()+" QUEUED (after NOVA)");}
@@ -1603,9 +1431,7 @@ function draw(){
   drawWaveMessage();drawHUD();
 }
 
-// ================================================
 // INPUT
-// ================================================
 function mousePressed(){
   if(STATE==="start"){
     let modes=["auto","mouse","spacebar"];
